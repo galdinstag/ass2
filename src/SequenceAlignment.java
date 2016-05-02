@@ -1,4 +1,3 @@
-package ass2;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,6 +12,9 @@ public class SequenceAlignment {
     int a;
     int b;
     TransitionMatrix matrix;
+    LinkedHashMap<String,LinkedHashMap<String, ArrayList<Integer>>> wordsTextMap;
+    LinkedHashMap<String, ArrayList<Word>> similerWordsMap;
+    LinkedHashMap<Integer,Word> hits;
 
     public SequenceAlignment(String queriesFile, String matrixFile, String textFile, int num, int threshold) {
         k = num;
@@ -35,36 +37,37 @@ public class SequenceAlignment {
 
         //make hash of words and indexes in text
 
-        LinkedHashMap<String, ArrayList<Word>> wordsTextMap = new LinkedHashMap<String, ArrayList<Word>>();
+        wordsTextMap = new LinkedHashMap<>();
 
         String currentWord;
         for (Map.Entry<String, String> entry : sequenceText.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
+            wordsTextMap.put(key,new LinkedHashMap<>());
             for (int i = 0; i <= value.length() - k; i++) {
-                currentWord = value.substring(i, i + k + 1);
-                if (wordsTextMap.containsKey(currentWord))    //contains word add only new location
-                    wordsTextMap.get(currentWord).add(new Word(key, i));
+                currentWord = value.substring(i, i + k);
+                if (wordsTextMap.get(key).containsKey(currentWord))    //contains word add only new location
+                    wordsTextMap.get(key).get(currentWord).add(new Integer(i));
                 else {
-                    ArrayList<Word> arraylist = new ArrayList<Word>();    //create a new arraylist for the word
-                    arraylist.add(new Word(key, i));
-                    wordsTextMap.put(currentWord, arraylist);
+                    ArrayList<Integer> arraylist = new ArrayList<Integer>();    //create a new arraylist for the word
+                    arraylist.add(new Integer(i));
+                    wordsTextMap.get(key).put(currentWord, arraylist);
                 }
             }
         }
-
         queryPreProcess();
     }
 
+
     private void queryPreProcess() {
-        LinkedHashMap<String, ArrayList<Word>> similerWordsMap = new LinkedHashMap<String, ArrayList<Word>>();
+        similerWordsMap = new LinkedHashMap<String, ArrayList<Word>>();
         //for each query
         String currentWindow;
         for (Map.Entry<String, String> entry : sequenceQueries.entrySet()) {
             String value = entry.getValue();
             //for each sliding window, find all similar words
             for (int i = 0; i <= value.length() - k; i++) {
-                currentWindow = value.substring(i, i + k + 1);
+                currentWindow = value.substring(i, i + k);
                 if (!similerWordsMap.containsKey(currentWindow)) {
                     similerWordsMap.put(currentWindow, findSimilarWords(currentWindow));
                 }
@@ -73,12 +76,31 @@ public class SequenceAlignment {
     }
 
 
+    public void findHits(String query, String text) {
+        LinkedHashMap<String,ArrayList<Integer>> textWords = wordsTextMap.get(text);
+        hits = new LinkedHashMap<>();
+        ArrayList<Word> similarWords;
+        for(int i = 0; i <= query.length() - k; i++){// for each sliding window in the query
+            similarWords = similerWordsMap.get(query.substring(i,i + k));
+            for(Word currWord : similarWords){// find the similar word in the text
+                if(textWords.containsKey(currWord.getParagraph())){// check if similar word exists in text
+                    for(Integer index : textWords.get(currWord.getParagraph())){
+                        hits.put(index,currWord);
+                    }
+                }
+            }
+        }
+    }
+
+    public void extendHits(String query, String text, LinkedHashMap<Integer,Word> hits){
+
+    }
     public File fixMatrix(String orgMatrix) {
         try {
             BufferedReader bf = new BufferedReader(new FileReader(orgMatrix));
             BufferedWriter writer = new BufferedWriter(new FileWriter("mid.txt"));
             String line = bf.readLine();
-            while ((line != null) && line.contains("#")) {    //dont read lines with #
+            while ((line != null) && line.contains("#")) {    //don't read lines with #
                 line = bf.readLine();
             }
             while ((line != null) && (!line.contains("#"))) { //read matrix
@@ -87,7 +109,7 @@ public class SequenceAlignment {
                 writer.flush();
                 line = bf.readLine();
             }
-            while ((line != null) && line.contains("#")) { //dont read lines with #
+            while ((line != null) && line.contains("#")) { //don't read lines with #
                 line = bf.readLine();
             }
             //read A for: W(x) = Ax + B
@@ -113,11 +135,13 @@ public class SequenceAlignment {
     private ArrayList<Word> findSimilarWords(String currentWindow) {
         ArrayList<Word> similarWords = new ArrayList<>();
         //find similar words to "currentWindow"
+        similarWords.add(new Word(currentWindow,currentWindow.length()*5));
         checkPerm(similarWords,currentWindow,currentWindow,0,currentWindow.length()*5);
         return similarWords;
     }
     private ArrayList<Word> checkPerm(ArrayList<Word> similarWords, String currentWindow,String originalWindow, int i, int currentScore){
         StringBuilder currPerm = new StringBuilder(currentWindow);
+        int newScore;
         if(i == currentWindow.length()){
             return similarWords;
         }
@@ -127,34 +151,66 @@ public class SequenceAlignment {
             if(currPerm.charAt(i) != 'a'){
                 //if score after change >= threshold, add perm to array
                 if(currentScore + matrix.score(currPerm.charAt(i),'a') >= threshold){
+                    newScore = currentScore + matrix.score(currPerm.charAt(i),'a');
                     currPerm.setCharAt(i,'a');
-                    similarWords.add(new Word(currPerm.toString(),currentScore + matrix.score(currPerm.charAt(i),'a')));
-                    checkPerm(similarWords,currPerm.toString(),originalWindow,i+1,currentScore + matrix.score(currPerm.charAt(i),'a'));
+                    similarWords.add(new Word(currPerm.toString(),newScore));
+                    checkPerm(similarWords,currPerm.toString(),originalWindow,i+1,newScore);
+                    currPerm.setCharAt(i,currentWindow.charAt(i));
                 }
+                else{
+                    checkPerm(similarWords,currPerm.toString(),originalWindow,i+1,currentScore);
+                }
+            }
+            else{
+                checkPerm(similarWords,currPerm.toString(),originalWindow,i+1,currentScore);
             }
             if(currPerm.charAt(i) != 't'){
                 //if score after change >= threshold, add perm to array
                 if(currentScore + matrix.score(currPerm.charAt(i),'t') >= threshold){
+                    newScore = currentScore + matrix.score(currPerm.charAt(i),'t');
                     currPerm.setCharAt(i,'t');
-                    similarWords.add(new Word(currPerm.toString(),currentScore + matrix.score(currPerm.charAt(i),'t')));
-                    checkPerm(similarWords,currPerm.toString(),originalWindow,i+1,currentScore + matrix.score(currPerm.charAt(i),'t'));
+                    similarWords.add(new Word(currPerm.toString(),newScore));
+                    checkPerm(similarWords,currPerm.toString(),originalWindow,i+1,newScore);
+                    currPerm.setCharAt(i,currentWindow.charAt(i));
                 }
+                else{
+                    checkPerm(similarWords,currPerm.toString(),originalWindow,i+1,currentScore);
+                }
+            }
+            else{
+                checkPerm(similarWords,currPerm.toString(),originalWindow,i+1,currentScore);
             }
             if(currPerm.charAt(i) != 'g'){
                 //if score after change >= threshold, add perm to array
                 if(currentScore + matrix.score(currPerm.charAt(i),'g') >= threshold){
+                    newScore = currentScore + matrix.score(currPerm.charAt(i),'g');
                     currPerm.setCharAt(i,'g');
-                    similarWords.add(new Word(currPerm.toString(),currentScore + matrix.score(currPerm.charAt(i),'g')));
-                    checkPerm(similarWords,currPerm.toString(),originalWindow,i+1,currentScore + matrix.score(currPerm.charAt(i),'g'));
+                    similarWords.add(new Word(currPerm.toString(),newScore));
+                    checkPerm(similarWords,currPerm.toString(),originalWindow,i+1,newScore);
+                    currPerm.setCharAt(i,currentWindow.charAt(i));
                 }
+                else{
+                    checkPerm(similarWords,currPerm.toString(),originalWindow,i+1,currentScore);
+                }
+            }
+            else{
+                checkPerm(similarWords,currPerm.toString(),originalWindow,i+1,currentScore);
             }
             if(currPerm.charAt(i) != 'c'){
                 //if score after change >= threshold, add perm to array
                 if(currentScore + matrix.score(currPerm.charAt(i),'c') >= threshold){
+                    newScore = currentScore + matrix.score(currPerm.charAt(i),'c');
                     currPerm.setCharAt(i,'c');
-                    similarWords.add(new Word(currPerm.toString(),currentScore + matrix.score(currPerm.charAt(i),'c')));
-                    checkPerm(similarWords,currPerm.toString(),originalWindow,i+1,currentScore + matrix.score(currPerm.charAt(i),'c'));
+                    similarWords.add(new Word(currPerm.toString(),newScore));
+                    checkPerm(similarWords,currPerm.toString(),originalWindow,i+1,newScore);
+                    currPerm.setCharAt(i,currentWindow.charAt(i));
                 }
+                else{
+                    checkPerm(similarWords,currPerm.toString(),originalWindow,i+1,currentScore);
+                }
+            }
+            else{
+                checkPerm(similarWords,currPerm.toString(),originalWindow,i+1,currentScore);
             }
             return similarWords;
         }

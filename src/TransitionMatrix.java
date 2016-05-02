@@ -1,5 +1,3 @@
-package ass2;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
@@ -44,33 +42,33 @@ public class TransitionMatrix {
     public int score(char from, char to){
         int i = 99,j = 99;
         switch(from){
-            case 'A': i = 0;
+            case 'a': i = 0;
                 break;
-            case 'T': i = 1;
+            case 't': i = 1;
                 break;
-            case 'G': i = 2;
+            case 'g': i = 2;
                 break;
-            case 'C': i = 3;
+            case 'c': i = 3;
                 break;
-            case 'U': i = 4;
+            case 'u': i = 4;
                 break;
-            case 'N': i = 5;
+            case 'n': i = 5;
                 break;
             case '*': i = 6;
                 break;
         }
         switch(to){
-            case 'A': j = 0;
+            case 'a': j = 0;
                 break;
-            case 'T': j = 1;
+            case 't': j = 1;
                 break;
-            case 'G': j = 2;
+            case 'g': j = 2;
                 break;
-            case 'C': j = 3;
+            case 'c': j = 3;
                 break;
-            case 'U': j = 4;
+            case 'u': j = 4;
                 break;
-            case 'N': j = 5;
+            case 'n': j = 5;
                 break;
             case '*': j = 6;
                 break;
