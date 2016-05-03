@@ -1,13 +1,20 @@
 public class Word {
-	private String paragraph;
+	private String seq;
+	private int score;
 	private int startIndex;
-	public Word(String para, int index) {
-		paragraph = para;
-		startIndex = index;
+	private int endIndex;
+	public Word(int score, int startIndex, int endIndex) {
+		this.score = score;
+		this.startIndex = startIndex;
+		this.endIndex = endIndex;
 	}
 
-	public String getParagraph(){ return paragraph;}
+	public int getScore(){ return score;}
 	public String toString(){
-		return(paragraph+" "+startIndex);
+		return(score + " " + startIndex + " " + endIndex);
+	}
+
+	public int getIndex() {
+		return startIndex;
 	}
 }
