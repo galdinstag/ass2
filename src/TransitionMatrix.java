@@ -42,33 +42,33 @@ public class TransitionMatrix {
     public int score(char from, char to){
         int i = 99,j = 99;
         switch(from){
-            case 'a': i = 0;
+            case 'A': i = 0;
                 break;
-            case 't': i = 1;
+            case 'T': i = 1;
                 break;
-            case 'g': i = 2;
+            case 'G': i = 2;
                 break;
-            case 'c': i = 3;
+            case 'C': i = 3;
                 break;
-            case 'u': i = 4;
+            case 'U': i = 4;
                 break;
-            case 'n': i = 5;
+            case 'N': i = 5;
                 break;
             case '*': i = 6;
                 break;
         }
         switch(to){
-            case 'a': j = 0;
+            case 'A': j = 0;
                 break;
-            case 't': j = 1;
+            case 'T': j = 1;
                 break;
-            case 'g': j = 2;
+            case 'G': j = 2;
                 break;
-            case 'c': j = 3;
+            case 'C': j = 3;
                 break;
-            case 'u': j = 4;
+            case 'U': j = 4;
                 break;
-            case 'n': j = 5;
+            case 'N': j = 5;
                 break;
             case '*': j = 6;
                 break;

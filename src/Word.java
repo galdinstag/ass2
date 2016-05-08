@@ -3,8 +3,8 @@ public class Word {
 	private int score;
 	private int startIndex;
 	private int endIndex;
-	public Word(int score, int startIndex, int endIndex) {
-		this.score = score;
+	public Word(String seq, int startIndex, int endIndex) {
+		this.seq = seq;
 		this.startIndex = startIndex;
 		this.endIndex = endIndex;
 	}
@@ -16,5 +16,9 @@ public class Word {
 
 	public int getIndex() {
 		return startIndex;
+	}
+
+	public String getSeq() {
+		return seq;
 	}
 }

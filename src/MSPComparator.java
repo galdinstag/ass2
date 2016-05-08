@@ -5,7 +5,7 @@ public class MSPComparator implements Comparator{
 	public MSPComparator(){}
 	@Override
 	public int compare(Object o1, Object o2) {
-		return ((((Msp)o2).getEndTxt()-((Msp)o2).getStartTxt()) - (((Msp)o1).getEndTxt()-((Msp)o1).getStartTxt()));
+		return (((Msp)o2).getScore()) - (((Msp)o1).getScore());
 //		if (((Msp)o1).getEndTxt() - ((Msp)o2).getStartTxt() > 0)
 //			return 1;
 //		else if (((Msp)o1).getEndTxt() - ((Msp)o2).getStartTxt() < 0)
